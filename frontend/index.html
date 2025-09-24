@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Scanner - Building Access System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Building Access System</h1>
+            <p>Scan QR codes to track entry and exit</p>
+        </header>
+        
+        <div class="card">
+            <h2>Building Selection</h2>
+            <div class="form-group">
+                <label for="building-select">Select Building</label>
+                <select id="building-select">
+                    <option value="" disabled selected>Loading buildings...</option>
+                </select>
+            </div>
+            
+            <div class="direction-buttons">
+                <button id="btn-direction-in" class="btn-direction btn-in active">Entry</button>
+                <button id="btn-direction-out" class="btn-direction btn-out">Exit</button>
+            </div>
+        </div>
+        
+        <div class="card scanner-section">
+            <h2>QR Code Scanner</h2>
+            
+            <div id="camera-error" class="error-message">
+                Camera not supported on this device. Please use manual entry.
+            </div>
+            
+            <div id="qr-reader" class="qr-reader"></div>
+            
+            <div class="scanner-actions">
+                <button id="btn-toggle-scanner" class="btn-primary">Start Scanner</button>
+            </div>
+            
+            <div class="manual-input">
+                <h3>Manual Entry</h3>
+                <div class="form-group">
+                    <label for="manual-tag-id">Enter Tag ID</label>
+                    <input type="number" id="manual-tag-id" placeholder="Enter tag ID" inputmode="numeric">
+                </div>
+                <button id="btn-manual-submit" class="btn-primary">Submit</button>
+            </div>
+            
+            <div id="scan-result" class="scan-result"></div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>Building Occupancy</h2>
+                <ul class="building-list" id="building-list">
+                    <!-- Buildings will be populated here -->
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Activity</h2>
+                <div class="logs-container" id="logs-container">
+                    <!-- Logs will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Building Access System &copy; 2023</p>
+        </footer>
+    </div>
+
+    <!-- Include the QR code scanner library -->
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="js/ui.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9841d9067f4cb2f2',t:'MTc1ODcxMjM1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
