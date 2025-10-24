@@ -1,33 +1,69 @@
-const pool = require('../config/database');
+const supabase = require('../config/database');
 
-// Get all buildings
 exports.getBuildings = async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM "BUILDING" ORDER BY building_id');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching buildings:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    try {
+        const { data, error } = await supabase
+            .from('BUILDING')
+            .select('*');
+        
+        if (error) {
+            console.error('Error fetching buildings:', error);
+            return res.status(500).json({ error: 'Failed to fetch buildings' });
+        }
+        
+        res.json(data);
+    } catch (error) {
+        console.error('Unexpected error fetching buildings:', error);
+        res.status(500).json({ error: 'Failed to fetch buildings' });
+    }
 };
 
-// Get building by ID
-exports.getBuildingById = async (req, res) => {
-  const { id } = req.params;
-  
-  try {
-    const result = await pool.query(
-      'SELECT * FROM "BUILDING" WHERE building_id = $1',
-      [id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Building not found' });
+exports.updateCount = async (req, res) => {
+    const { building_id, direction, count } = req.body;
+
+    if (!building_id || !direction || !count) {
+        return res.status(400).json({ error: 'Missing required fields' });
     }
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching building:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+
+    try {
+        // Fetch current count
+        const { data: building, error: fetchError } = await supabase
+            .from('BUILDING')
+            .select('total_count')
+            .eq('building_id', building_id)
+            .single();
+
+        if (fetchError || !building) {
+            console.error('Error fetching building:', fetchError);
+            return res.status(404).json({ error: 'Building not found' });
+        }
+
+        let newCount = building.total_count;
+        if (direction === 'IN') {
+            newCount += count;
+        } else if (direction === 'OUT') {
+            newCount = Math.max(0, newCount - count);
+        } else {
+            return res.status(400).json({ error: 'Invalid direction' });
+        }
+
+        // Update count
+        const { error: updateError } = await supabase
+            .from('BUILDING')
+            .update({ total_count: newCount })
+            .eq('building_id', building_id);
+
+        if (updateError) {
+            console.error('Error updating count:', updateError);
+            return res.status(500).json({ error: 'Failed to update count' });
+        }
+
+        res.json({
+            message: `Successfully updated count for building ${building_id} (${direction} by ${count})`,
+            building: { building_id, total_count: newCount }
+        });
+    } catch (error) {
+        console.error('Unexpected error updating count:', error);
+        res.status(500).json({ error: 'Failed to update count' });
+    }
 };

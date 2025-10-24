@@ -1,4 +1,4 @@
-// API base URL - change this to your backend URL
+// API base URL
 const API_BASE = 'http://localhost:3001/api';
 
 // DOM elements
@@ -13,9 +13,14 @@ let currentDirection = 'IN';
 
 // Function to fetch and display buildings
 async function fetchBuildings() {
+    console.log('Fetching buildings...');
     try {
         const response = await fetch(`${API_BASE}/buildings`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         const buildings = await response.json();
+        console.log('Buildings fetched:', buildings);
         
         // Update building list
         updateBuildingList(buildings);
@@ -34,11 +39,18 @@ async function fetchBuildings() {
 
 // Update building list display
 function updateBuildingList(buildings) {
+    console.log('Updating building list with:', buildings);
     buildingList.innerHTML = '';
+    
+    if (!buildings || buildings.length === 0) {
+        buildingList.innerHTML = '<li class="building-item" style="text-align: center;">No buildings available</li>';
+        return;
+    }
     
     buildings.forEach(building => {
         const li = document.createElement('li');
         li.className = 'building-item';
+        li.dataset.buildingId = building.building_id;
         li.innerHTML = `
             <span>${building.building_id} (${building.dept_name})</span>
             <span class="count">${building.total_count} people</span>
@@ -75,7 +87,7 @@ function addSampleBuildings() {
         { building_id: 'BLDG-B', dept_name: 'Engineering', total_count: 0 },
         { building_id: 'BLDG-C', dept_name: 'Administration', total_count: 0 }
     ];
-    
+    console.log('Adding sample buildings:', sampleBuildings);
     updateBuildingList(sampleBuildings);
     updateBuildingSelect(sampleBuildings);
 }
@@ -176,6 +188,47 @@ async function processScan(tagId) {
     }
 }
 
+// Function to process manual count
+async function processCount(count) {
+    if (!currentBuildingId) {
+        showResult('Error: Please select a building first', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/buildings/count`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                building_id: currentBuildingId,
+                direction: currentDirection,
+                count: count
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Show success message
+            showResult(`Success: ${result.message}`, 'success');
+            
+            // Refresh buildings
+            fetchBuildings();
+        } else {
+            // Show error message
+            showResult(`Error: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error processing count:', error);
+        showResult('Error: Could not process count. Using demo mode.', 'warning');
+        
+        // Simulate success in demo mode
+        simulateCountSuccess(count);
+    }
+}
+
 // Simulate scan success for demo purposes
 function simulateScanSuccess(tagId) {
     showResult(`Demo: Processed ${currentDirection} for person ${tagId} at ${currentBuildingId}`, 'success');
@@ -184,6 +237,16 @@ function simulateScanSuccess(tagId) {
     setTimeout(() => {
         fetchBuildings();
         fetchLogs();
+    }, 1000);
+}
+
+// Simulate count success for demo purposes
+function simulateCountSuccess(count) {
+    showResult(`Demo: Processed ${currentDirection} for ${count} people at ${currentBuildingId}`, 'success');
+    
+    // Update UI with simulated data
+    setTimeout(() => {
+        fetchBuildings();
     }, 1000);
 }
 
@@ -212,6 +275,8 @@ function showResult(message, type = 'info') {
 
 // Initial data fetch
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('App.js: DOMContentLoaded fired, fetching initial data...');
+    if (!buildingList) console.error('App.js: building-list element not found');
     fetchBuildings();
     fetchLogs();
 });

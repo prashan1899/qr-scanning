@@ -3,6 +3,6 @@ const router = express.Router();
 const buildingController = require('../controllers/buildingController');
 
 router.get('/', buildingController.getBuildings);
-router.get('/:id', buildingController.getBuildingById);
+router.post('/count', buildingController.updateCount);
 
 module.exports = router;

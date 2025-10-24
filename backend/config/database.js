@@ -1,9 +1,15 @@
-const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+const supabaseUrl = process.env.SUPABASE_URL ;
+const supabaseKey = process.env.SUPABASE_KEY ;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-module.exports = pool;
+supabase
+  .from('BUILDING')
+  .select('*')
+  .limit(1)
+  .then(() => console.log('Connected to Supabase database'))
+  .catch(err => console.error('Supabase connection error:', err.message));
+
+module.exports = supabase;
